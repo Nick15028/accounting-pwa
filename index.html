@@ -327,6 +327,7 @@
         }
 
         function submitRecord() {
+
             const submitBtn = document.getElementById("submitBtn");
 
             const data = {
@@ -337,32 +338,71 @@
                 note: document.getElementById("note").value
             };
 
+            // 驗證金額
             if (!data.amount || Number(data.amount) <= 0) {
                 showMessage("請輸入正確金額", false);
                 return;
             }
 
+            // 防止重複點擊
             submitBtn.disabled = true;
-            submitBtn.innerText = "儲存中...";
 
+            submitBtn.innerText = "儲存中...";
+            submitBtn.style.opacity = "0.6";
+
+            // 呼叫 API
             callApi("addRecord", {
                 record: data
             })
+
                 .then(result => {
+
+                    // API 回傳失敗
                     if (!result.success) {
                         throw new Error(result.message || "新增失敗");
                     }
 
+                    // 成功提示
                     showMessage("新增成功", true);
 
+                    // 清空輸入欄位
                     document.getElementById("amount").value = "";
                     document.getElementById("note").value = "";
 
+                    // 更新統計
                     loadSummary();
+
+                    // 還原按鈕
+                    resetSubmitButton();
                 })
+
                 .catch(error => {
-                    showMessage("新增失敗：" + error.message, false);
+
+                    console.error(error);
+
+                    showMessage(
+                        "新增失敗：" + error.message,
+                        false
+                    );
+
+                    // 還原按鈕
+                    resetSubmitButton();
                 });
+        }
+
+        function resetSubmitButton() {
+            const submitBtn = document.getElementById("submitBtn");
+
+            submitBtn.disabled = false;
+            submitBtn.style.opacity = "1";
+
+            if (currentType === "支出") {
+                submitBtn.innerText = "新增支出";
+                submitBtn.style.background = "#d32f2f";
+            } else {
+                submitBtn.innerText = "新增收入";
+                submitBtn.style.background = "#2e7d32";
+            }
         }
 
         function loadSummary() {
